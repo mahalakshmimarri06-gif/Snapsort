@@ -57,12 +57,19 @@ def main(argv=None) -> None:
     ap = argparse.ArgumentParser(prog="snapsort")
     ap.add_argument("--headless", action="store_true", help="process the folders, print a report and exit")
     ap.add_argument("--no-watch", action="store_true", help="don't watch the folders for new files")
+    ap.add_argument("--demo", action="store_true", help="run in instant demo mode with high-fidelity Gemma 4 simulation")
     args = ap.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
+    import os
     settings = Settings()
     conn = boot(settings)
-    llm = OllamaLLM(settings.ollama_url, settings.embed_model, settings.llm_timeout_s)
+    if args.demo or os.environ.get("SNAPSORT_DEMO"):
+        from .demo_llm import DemoLLM
+        log.info("Running in DEMO mode with simulated Gemma 4")
+        llm = DemoLLM(settings.triage_model, settings.work_model, settings.embed_model)
+    else:
+        llm = OllamaLLM(settings.ollama_url, settings.embed_model, settings.llm_timeout_s)
     policy = load_policy(settings.policy_path)
     pipeline = Pipeline(conn, settings, llm, policy)
 
