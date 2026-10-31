@@ -452,6 +452,23 @@ document.addEventListener("click", async (e) => {
     if (has("preset")) return setRange(t.dataset.range);
     if (has("open-export")) { $("#export-modal").classList.remove("hidden"); refreshExpenses(); return $(".close-export").focus(); }
     if (has("close-export")) return $("#export-modal").classList.add("hidden");
+    if (t.id === "open-audit" || has("pill-audit")) { $("#audit-modal").classList.remove("hidden"); return $(".close-audit")?.focus(); }
+    if (has("close-audit")) return $("#audit-modal").classList.add("hidden");
+    if (has("demo-btn") && t.dataset.sample) {
+      t.disabled = true;
+      const prevHtml = t.innerHTML;
+      t.innerHTML = "⏳ Processing drop…";
+      try {
+        const res = await post(`/api/demo/drop?sample=${t.dataset.sample}`);
+        toast(`Dropped ${res.dropped} into ${res.folder}`, []);
+        scheduleRefresh();
+      } catch (e) {
+        alert("Demo drop failed: " + e.message);
+      } finally {
+        setTimeout(() => { t.disabled = false; t.innerHTML = prevHtml; }, 1200);
+      }
+      return;
+    }
     if (has("tab")) { currentTab = t.dataset.tab; return renderLibrary(); }
     if (has("toast-undo")) return undoJournal(t.dataset.ids.split(",").map(Number));
     if (has("approve")) return approveItem(t.closest(".inbox-item"));
@@ -481,7 +498,7 @@ document.addEventListener("click", async (e) => {
   }
 });
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") { closeDrawer(); $("#export-modal").classList.add("hidden"); }
+  if (e.key === "Escape") { closeDrawer(); $("#export-modal").classList.add("hidden"); $("#audit-modal")?.classList.add("hidden"); }
   if (e.key === "Enter" && e.target.classList?.contains("card")) openDrawer(e.target.dataset.id);
 });
 

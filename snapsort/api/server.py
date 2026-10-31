@@ -5,6 +5,7 @@ import asyncio
 import json
 import subprocess
 import sys
+import shutil
 from pathlib import Path
 
 import psutil
@@ -298,5 +299,35 @@ def create_app(settings: Settings, llm: LLM, policy: Policy) -> FastAPI:
     @app.post("/api/rescan")
     def rescan(c=Depends(get_conn)):
         return {"new": initial_scan(c, settings)}
+
+    @app.get("/api/demo/samples")
+    def demo_samples():
+        drops = settings.root / "mock" / "_demo_drops"
+        items = []
+        if drops.exists():
+            for p in sorted(drops.glob("*.*")):
+                items.append({"name": p.name, "size": p.stat().st_size})
+        return items
+
+    @app.post("/api/demo/drop")
+    def demo_drop(sample: str = "airtel", c=Depends(get_conn)):
+        drops = settings.root / "mock" / "_demo_drops"
+        mapping = {
+            "airtel": ("Airtel_Bill_*.pdf", settings.watch_dirs[0], "bill"),
+            "lab": ("Apollo_followup.pdf", settings.watch_dirs[0], "medical report"),
+            "wifi": ("Screenshot 2026-10-31*.png", settings.watch_dirs[1], "secret screenshot"),
+        }
+        if sample not in mapping:
+            raise HTTPException(400, f"Unknown sample '{sample}'. Allowed: {list(mapping.keys())}")
+        pattern, target_dir, desc = mapping[sample]
+        src = next(drops.glob(pattern), None)
+        if not src or not src.exists():
+            raise HTTPException(404, f"Sample file matching '{pattern}' not found in {drops}")
+        target_dir.mkdir(parents=True, exist_ok=True)
+        dest = tools._unique(target_dir / src.name)
+        shutil.copyfile(src, dest)
+        events.emit(c, "human", f"Demo trigger: dropped {desc} into {target_dir.name}")
+        register_file(c, settings, dest)
+        return {"ok": True, "dropped": dest.name, "folder": target_dir.name, "path": dest.as_posix()}
 
     return app
