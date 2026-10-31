@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SnapSort</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <h1>SnapSort</h1>
+      <p id="summary" class="summary">Reading your folders…</p>
+    </div>
+    <div class="status" aria-live="polite">
+      <span id="pill-net" class="pill">Checking network</span>
+      <span id="pill-model" class="pill">Checking model</span>
+      <span id="pill-queue" class="pill">–</span>
+    </div>
+  </header>
+
+  <form id="ask" class="ask" autocomplete="off">
+    <label for="ask-q" class="visually-hidden">Ask about your files</label>
+    <input id="ask-q" placeholder="Ask about your files, e.g. “what's the WiFi password?” or “when is the electricity bill due?”">
+    <button type="submit">Ask</button>
+  </form>
+  <div id="answer" class="answer hidden" aria-live="polite"></div>
+
+  <main class="grid">
+    <section class="col col-inbox" aria-labelledby="h-inbox">
+      <h2 id="h-inbox">Needs you <span id="inbox-count" class="count"></span></h2>
+      <div id="inbox"></div>
+    </section>
+
+    <section class="col col-library" aria-labelledby="h-library">
+      <div class="lib-head"><h2 id="h-library">Library</h2>
+        <input id="lib-search" type="search" placeholder="Filter by name, company, amount…" aria-label="Filter the library"></div>
+      <nav id="tabs" class="tabs" aria-label="Filter by type"></nav>
+      <div id="library" class="cards"></div>
+    </section>
+
+    <section class="col col-feed" aria-labelledby="h-coming">
+      <div class="lib-head"><h2 id="h-coming">Coming up</h2>
+        <button type="button" class="small open-export">Export expenses</button></div>
+      <ul id="reminders" class="list"></ul>
+      <h2>Rules you taught me</h2>
+      <ul id="rules" class="list"></ul>
+      <h2 id="h-feed">What I'm doing</h2>
+      <ol id="feed" class="feed"></ol>
+    </section>
+  </main>
+
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+  <div id="dropzone" class="dropzone hidden"><p>Drop to let SnapSort sort it</p><span>It stays on this laptop.</span></div>
+  <div id="export-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="h-export">
+    <div class="modal-box">
+      <div class="lib-head"><h2 id="h-export">Export expenses</h2><button type="button" class="small close-export">Close</button></div>
+      <p class="hint">Bills by due date and payments by payment date. Amounts I couldn't verify are marked.</p>
+      <div class="export">
+        <div class="row presets">
+          <button type="button" class="small preset" data-range="month">This month</button>
+          <button type="button" class="small preset" data-range="quarter">Last 3 months</button>
+          <button type="button" class="small preset" data-range="year">This year</button>
+        </div>
+        <div class="row">
+          <label>From <input type="date" id="exp-start"></label>
+          <label>To <input type="date" id="exp-end"></label>
+        </div>
+        <ul id="exp-list" class="list"></ul>
+        <div class="row"><strong id="exp-total"></strong><a id="exp-download" class="download" href="#">Download CSV</a></div>
+      </div>
+    </div>
+  </div>
+  <div id="scrim" class="scrim hidden"></div>
+  <aside id="drawer" class="drawer hidden" aria-label="File details"></aside>
+  <script src="/static/app.js"></script>
+</body>
+</html>
